@@ -1,8 +1,30 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Next.js Boilerplate
+
+A Next.js starter template by Sahil Saini, pre-configured with Tailwind CSS v4, shadcn/ui components, Radix UI, and TypeScript.
+
+## Tech Stack
+
+- **[Next.js 16](https://nextjs.org)** — React framework with App Router
+- **[React 19](https://react.dev)** — UI library
+- **[TypeScript](https://www.typescriptlang.org)** — Type safety
+- **[Tailwind CSS v4](https://tailwindcss.com)** — Utility-first styling
+- **[shadcn/ui](https://ui.shadcn.com)** — Accessible component primitives built on Radix UI
+- **[Lucide React](https://lucide.dev)** — Icon library
+
+## Prerequisites
+
+- Node.js 18+
+- npm, yarn, pnpm, or bun
 
 ## Getting Started
 
-First, run the development server:
+1. **Clone or use this repo as a template**, then install dependencies:
+
+```bash
+npm install
+```
+
+2. **Start the development server:**
 
 ```bash
 npm run dev
@@ -14,23 +36,52 @@ pnpm dev
 bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+3. Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Project Structure
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```
+app/
+  page.tsx        # Home page — start editing here
+  layout.tsx      # Root layout (fonts, global styles)
+components/
+  ui/             # shadcn/ui components (e.g. card.tsx)
+public/           # Static assets
+```
 
-## Learn More
+## Available Scripts
 
-To learn more about Next.js, take a look at the following resources:
+| Command | Description |
+|---------|-------------|
+| `npm run dev` | Start dev server at localhost:3000 |
+| `npm run build` | Build for production |
+| `npm run start` | Run the production build |
+| `npm run lint` | Run ESLint |
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Adding shadcn/ui Components
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+This boilerplate includes shadcn/ui. Add new components with:
 
-## Deploy on Vercel
+```bash
+npx shadcn@latest add <component-name>
+# e.g.
+npx shadcn@latest add button
+npx shadcn@latest add dialog
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Customization
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- **Global styles** — edit `app/globals.css`
+- **Tailwind config** — edit `tailwind.config.ts` (or the CSS-based config in v4)
+- **Fonts** — swap out fonts in `app/layout.tsx`
+- **Home page** — edit `app/page.tsx`
+
+## Deployment
+
+The easiest way to deploy is [Vercel](https://vercel.com/new):
+
+1. Push your code to GitHub
+2. Import the repo on Vercel
+3. Deploy — zero config required
+
+See the [Next.js deployment docs](https://nextjs.org/docs/app/building-your-application/deploying) for other platforms.
