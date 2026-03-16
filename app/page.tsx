@@ -8,10 +8,18 @@ import {
   CardFooter,
 } from "@/components/ui/card";
 
+import {
+    Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselPrevious,
+  CarouselNext,
+} from "@/components/ui/carousel"
+
 export default function Home() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
+    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-gray-900">
+      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start dark:border-2 dark:border-solid dark:border-gray-700">
         <Image
           className="dark:invert"
           src="/next.svg"
@@ -20,7 +28,9 @@ export default function Home() {
           height={20}
           priority
         />
-        <Card className="w-full max-w-md">
+
+        <h1>Testing Card Component</h1>
+        <Card className="w-full max-w-md mx-auto border-2 border-solid border-gray-200 dark:border-gray-700">
           <CardHeader>
             <CardTitle>Get started</CardTitle>
             <CardDescription>
@@ -75,6 +85,58 @@ export default function Home() {
             Documentation
           </a>
         </div>
+        <h1>Testing Carousel Component</h1>
+        <Carousel>
+          <CarouselContent>
+            <CarouselItem>
+              <Card className="w-full max-w-lg mx-auto border-2 border-solid border-gray-200 dark:border-gray-700">
+                <CardHeader>
+                  <CardTitle>Welcome to Next.js</CardTitle>
+                  <CardDescription>
+                    Build modern web applications with React and TypeScript.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm text-muted-foreground">
+                    Next.js provides the best developer experience with all the features you need for production.
+                  </p>
+                </CardContent>
+              </Card>
+            </CarouselItem>
+            <CarouselItem>
+              <Card className="w-full max-w-lg mx-auto border-2 border-solid border-gray-200 dark:border-gray-700">
+                <CardHeader>
+                  <CardTitle>Tailwind CSS</CardTitle>
+                  <CardDescription>
+                    Utility-first CSS framework for rapid UI development.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm text-muted-foreground">
+                    Style your components with Tailwind&apos;s responsive design utilities and dark mode support.
+                  </p>
+                </CardContent>
+              </Card>
+            </CarouselItem>
+            <CarouselItem>
+              <Card className="w-full max-w-lg mx-auto border-2 border-solid border-gray-200 dark:border-gray-700">
+                <CardHeader>
+                  <CardTitle>shadcn/ui Components</CardTitle>
+                  <CardDescription>
+                    Beautiful and accessible UI components built on Radix UI.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm text-muted-foreground">
+                    Pre-built components like cards, buttons, and carousels that you can customize to fit your design.
+                  </p>
+                </CardContent>
+              </Card>
+            </CarouselItem>
+          </CarouselContent>
+          <CarouselPrevious />
+          <CarouselNext />
+        </Carousel>
       </main>
     </div>
   );
