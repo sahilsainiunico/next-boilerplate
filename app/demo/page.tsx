@@ -37,15 +37,6 @@ const cases = [
     cta: "Learn how to trigger →",
     color: "border-purple-500/40 hover:border-purple-500",
   },
-  {
-    href: "/demo/api-inspector",
-    title: "ApiInspector",
-    badge: "Dev tool",
-    description:
-      "Dev-only floating panel that intercepts every fetch() call and logs method, URL, status, and duration in real time.",
-    cta: "Fire requests →",
-    color: "border-green-500/40 hover:border-green-500",
-  },
 ];
 
 export default function DemoPage() {
