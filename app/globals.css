@@ -47,7 +47,6 @@
   --radius-4xl: calc(var(--radius) * 2.6);
 
 
-    /* brand colors */
   --color-onvia-blue: var(--onvia-blue);
 }
 
@@ -84,11 +83,6 @@
   --sidebar-accent-foreground: oklch(0.205 0 0);
   --sidebar-border: oklch(0.922 0 0);
   --sidebar-ring: oklch(0.708 0 0);
-
-
-
-
-  /* brand colors */
   --onvia-blue: oklch(54.642% 0.19415 257.033);
 }
 
