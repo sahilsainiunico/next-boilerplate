@@ -1,185 +1,214 @@
 # Next.js Boilerplate
 
-A Next.js starter template by Sahil Saini, pre-configured with Tailwind CSS v4, shadcn/ui components, Radix UI, and TypeScript.
+A production-ready Next.js starter template by Sahil Saini, pre-configured with Tailwind CSS v4, shadcn/ui, Zustand, typed API client, auth system, and Docker support.
 
 ## Tech Stack
 
-- **[Next.js 16](https://nextjs.org)** — React framework with App Router
-- **[React 19](https://react.dev)** — UI library
-- **[TypeScript](https://www.typescriptlang.org)** — Type safety
-- **[Tailwind CSS v4](https://tailwindcss.com)** — Utility-first styling
-- **[shadcn/ui](https://ui.shadcn.com)** — Accessible component primitives built on Radix UI
-- **[Lucide React](https://lucide.dev)** — Icon library
+| Category | Technology |
+|----------|------------|
+| Framework | [Next.js 16](https://nextjs.org) (App Router) + [React 19](https://react.dev) + [TypeScript](https://www.typescriptlang.org) |
+| Styling | [Tailwind CSS v4](https://tailwindcss.com) (CSS-first config) + [shadcn/ui](https://ui.shadcn.com) + [Radix UI](https://www.radix-ui.com) |
+| State | [Zustand](https://zustand.docs.pmnd.rs) with persist middleware |
+| Forms | [React Hook Form](https://react-hook-form.com) + [Zod](https://zod.dev) validation |
+| Theme | [next-themes](https://github.com/pacocoursey/next-themes) (system preference + toggle) |
+| Toasts | [Sonner](https://sonner.emilkowal.dev) |
+| Icons | [Lucide React](https://lucide.dev) |
+| Linting | ESLint (flat config) + Prettier with Tailwind plugin |
+| Deploy | Docker (multi-stage) or Vercel |
 
 ## Prerequisites
 
-- Node.js 18+
-- npm, yarn, pnpm, or bun
+- Node.js 20+
+- npm
 
 ## Getting Started
 
-1. **Clone or use this repo as a template**, then install dependencies:
-
 ```bash
+# 1. Clone and install
 npm install
-```
 
-2. **Start the development server:**
+# 2. Set up environment
+cp .env.example .env.local
 
-```bash
+# 3. Start dev server
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-3. Open [http://localhost:3000](http://localhost:3000) in your browser.
+Open [http://localhost:3000](http://localhost:3000).
 
 ## Project Structure
 
 ```
 app/
-  layout.tsx             # Root layout (fonts, global styles, dev tools)
-  page.tsx               # Home page — start editing here
-  loading.tsx            # Global loading skeleton (Suspense fallback)
-  error.tsx              # Route-level error boundary
-  global-error.tsx       # Root layout error boundary
-  not-found.tsx          # Custom 404 page
-  api/
-    health/
-      route.ts           # GET /api/health — health-check endpoint
-  demo/                  # Interactive error-handling demos → /demo
-    page.tsx             # Demo hub with links to all cases
-    error/page.tsx       # Triggers error.tsx (render-time throw)
-    not-found/page.tsx   # Triggers not-found.tsx (calls notFound())
-    loading/             # Triggers loading.tsx (3-second async page)
-      loading.tsx
-      page.tsx
-    global-error/page.tsx  # Explains global-error.tsx + how to reproduce
+  layout.tsx               # Root layout (fonts, Providers, SEO metadata)
+  page.tsx                 # Home page
+  globals.css              # Tailwind v4 design tokens (:root, .dark, @theme)
+  error.tsx                # Route-level error boundary
+  global-error.tsx         # Root layout error boundary
+  not-found.tsx            # Custom 404 page
+  loading.tsx              # Global loading skeleton
+  demo/                    # Interactive error-handling demos → /demo
 components/
-  ui/                 # shadcn/ui components (button, card, carousel)
-  dev/
-    api-inspector.tsx # Dev-only API request inspector panel
-hooks/                # Reusable React hooks
-  index.ts            # Barrel re-exports for all hooks
-  use-media-query.ts  # CSS media query listener + useScreenSize()
-  use-debounce.ts     # Debounce any value
-  use-local-storage.ts# Persist state to localStorage with cross-tab sync
-  use-on-click-outside.ts # Detect clicks outside a ref element
-  use-is-mounted.ts   # SSR safety guard
-  use-is-client.ts    # Hydration-safe client-side check
-  use-copy-to-clipboard.ts # Clipboard API wrapper
+  ui/                      # shadcn/ui components (Button, Card, Carousel, ThemeToggle)
+  layouts/                 # Page layouts (PageLayout, AuthLayout)
+  providers/               # Combined Providers wrapper (Theme, Auth, Toast)
+config/
+  routes.ts                # Centralized page route constants (ROUTES)
+  endpoints.ts             # API endpoint constants (ENDPOINTS) + interpolate() helper
+  env.ts                   # Typed environment variable access
+hooks/                     # Custom React hooks with barrel export
 lib/
-  utils.ts            # cn() class-merge helper
-public/               # Static assets
+  utils.ts                 # cn() class-merge helper
+services/
+  api-client.ts            # Typed fetch wrapper (retry, auth, error toasts)
+  auth-service.ts          # Auth methods (login, register, logout, getProfile)
+store/
+  auth-store.ts            # Zustand auth store (user, tokens, persist)
+types/
+  api.ts                   # ApiResponse<T>, ApiError, PaginatedResponse<T>, RequestConfig
+  auth.ts                  # User, AuthTokens, LoginCredentials, RegisterCredentials
+  common.ts                # Theme, RouteConfig
 ```
 
 ## Available Scripts
 
 | Command | Description |
 |---------|-------------|
-| `npm run dev` | Start dev server at localhost:3000 |
-| `npm run build` | Build for production |
+| `npm run dev` | Start dev server with Turbopack |
+| `npm run build` | Production build |
 | `npm run start` | Run the production build |
 | `npm run lint` | Run ESLint |
+| `npm run format` | Format all files with Prettier |
+| `npm run format:check` | Check formatting without writing |
 
-## Adding shadcn/ui Components
+## Key Features
 
-This boilerplate includes shadcn/ui. Add new components with:
+### API Client
 
-```bash
-npx shadcn@latest add <component-name>
-# e.g.
-npx shadcn@latest add button
-npx shadcn@latest add dialog
+A typed `fetch` wrapper in `services/api-client.ts` that all API calls should go through:
+
+- **Typed responses** — normalizes to `ApiResponse<T>` shape
+- **Auth token injection** — auto-attaches Bearer token from Zustand store
+- **401 refresh** — on unauthorized, refreshes the access token and retries
+- **Retry with backoff** — configurable retries with exponential delay
+- **Error toasts** — auto-triggers toast on failure (opt out with `skipErrorToast`)
+- **Timeout** — per-request AbortController timeout (default 30s)
+
+```ts
+import { apiClient } from "@/services";
+import { ENDPOINTS, interpolate } from "@/config/endpoints";
+
+// GET request
+const { data, ok } = await apiClient.get<User>(ENDPOINTS.AUTH.ME);
+
+// POST with body
+await apiClient.post(ENDPOINTS.AUTH.LOGIN, credentials, { skipAuth: true });
+
+// Dynamic endpoint with mustache interpolation
+await apiClient.get(interpolate(ENDPOINTS.USERS.DETAIL, { id: "42" }));
 ```
 
-## Error Handling
+### Endpoint Constants
 
-The boilerplate includes a complete error handling setup out of the box:
+All API paths are defined in `config/endpoints.ts`. Dynamic segments use `{{param}}` syntax resolved by the `interpolate()` helper. Never hardcode endpoint strings.
+
+### Auth System
+
+- **Store** (`store/auth-store.ts`) — Zustand with localStorage persistence for user, tokens, and auth state
+- **Service** (`services/auth-service.ts`) — login, register, logout, getProfile
+- **Provider** (`components/providers/auth-provider.tsx`) — validates session on mount
+- **Guard** (`components/layouts/auth-layout.tsx`) — redirects unauthenticated users to login
+
+### Theme System
+
+- System preference detection out of the box
+- `ThemeToggle` component cycles: light → dark → system
+- Design tokens in `globals.css` with `:root` (light) and `.dark` overrides using OKLch colors
+
+### Form Handling
+
+React Hook Form with Zod schema validation:
+
+```ts
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+
+const schema = z.object({
+  email: z.string().email(),
+  password: z.string().min(8),
+});
+
+const { register, handleSubmit, formState: { errors } } = useForm({
+  resolver: zodResolver(schema),
+});
+```
+
+### Error Handling
 
 | File | Purpose |
 |------|---------|
-| `app/error.tsx` | Catches runtime errors in any route segment. Displays a styled error card with the error message, an error digest ID (for server-side errors), and a "Try again" button that re-renders the segment. This is a Client Component as required by Next.js. |
-| `app/global-error.tsx` | Catches errors that occur in the root layout itself. Since the root layout has failed, this component renders its own `<html>` and `<body>` tags with minimal inline styling (no external component dependencies). |
-| `app/not-found.tsx` | Custom 404 page shown when navigating to a non-existent route or when `notFound()` is called. Displays a centered "404 - Page Not Found" message with a button linking back to the home page. |
-| `app/loading.tsx` | Automatic loading UI displayed while a route segment is loading. Uses Tailwind's `animate-pulse` on placeholder shapes to create a skeleton screen effect. |
+| `app/error.tsx` | Route-level error boundary with retry button |
+| `app/global-error.tsx` | Root layout error boundary (renders own `<html>`) |
+| `app/not-found.tsx` | Custom 404 page |
+| `app/loading.tsx` | Global loading skeleton |
 
-### Interactive demos
+Interactive demos at `/demo` to trigger each case.
 
-Navigate to **`/demo`** to trigger each case live:
+### Hooks
 
-| Route | What it demonstrates |
-|---|---|
-| `/demo/error` | Clicks a button → sets state → component throws during render → `error.tsx` catches it and shows a retry button |
-| `/demo/not-found` | Server Component calls `notFound()` → `not-found.tsx` renders |
-| `/demo/loading` | Async Server Component with a 3-second delay → `loading.tsx` skeleton shown instantly via Suspense |
-| `/demo/global-error` | Informational — explains why `global-error.tsx` can't be triggered via navigation and how to reproduce it manually |
-| `/demo/api-inspector` | Fires GET, POST, 404, and slow cross-origin requests — watch them appear live in the API Inspector panel |
+All hooks in `hooks/` are importable via `@/hooks`:
 
-## Hooks
+| Hook | Description |
+|------|-------------|
+| `useMediaQuery` / `useScreenSize` | Hydration-safe media query matching (breakpoints: 640px, 1024px) |
+| `useDebounce<T>` | Debounce any value (default 500ms) |
+| `useLocalStorage<T>` | localStorage with cross-tab sync |
+| `useOnClickOutside` | Click outside detection |
+| `useIsMounted` / `useIsClient` | Hydration-safe booleans |
+| `useCopyToClipboard` | Clipboard API wrapper |
 
-All hooks live in `hooks/` and are importable via `@/hooks`. Each is a Client Component (`"use client"` directive) with full TypeScript generics where applicable.
+### Layout Components
 
-| Hook | Signature | Description |
-|------|-----------|-------------|
-| `useMediaQuery` | `useMediaQuery(query: string): boolean` | Subscribes to a CSS media query using `useSyncExternalStore`. Returns `false` during SSR, then the live match result on the client. |
-| `useScreenSize` | `useScreenSize(): { isMobile, isTablet, isDesktop }` | Convenience wrapper around `useMediaQuery` with breakpoints at 640px and 1024px. |
-| `useDebounce` | `useDebounce<T>(value: T, delay?: number): T` | Returns a debounced copy of `value` that only updates after `delay` ms of inactivity (default 500ms). |
-| `useLocalStorage` | `useLocalStorage<T>(key: string, initialValue: T): [T, setter]` | Works like `useState` but persists to `localStorage`. Handles SSR, JSON parse errors, quota limits, and syncs across browser tabs via the `storage` event. |
-| `useOnClickOutside` | `useOnClickOutside(ref, handler)` | Calls `handler` when a `mousedown` or `touchstart` event occurs outside the element referenced by `ref`. Useful for closing dropdowns, modals, and popovers. |
-| `useIsMounted` | `useIsMounted(): boolean` | Returns `false` on the server and `true` on the client. Implemented with `useSyncExternalStore` to avoid hydration mismatches. |
-| `useIsClient` | `useIsClient(): boolean` | Same semantics as `useIsMounted` — returns `true` only on the client. Use whichever name reads better in your context. |
-| `useCopyToClipboard` | `useCopyToClipboard(): { copiedText, copy }` | Copies text to the clipboard via `navigator.clipboard.writeText()`. Returns the last copied string and a `copy(text)` async function that resolves to `true`/`false`. |
+- **`PageLayout`** — responsive container with configurable `maxWidth` (sm/md/lg/xl/2xl/full)
+- **`AuthLayout`** — client-side auth guard, redirects to login if unauthenticated
 
-Import hooks individually or via the barrel:
+## Adding shadcn/ui Components
 
-```tsx
-import { useMediaQuery, useDebounce } from "@/hooks";
+```bash
+npx shadcn@latest add <component-name>
 ```
 
-## API Inspector (Dev Tool)
+## Environment Variables
 
-A development-only floating panel that intercepts all `fetch()` calls and displays them in real time.
+Copy `.env.example` to `.env.local` and configure:
 
-**How it works:**
-- On mount, monkey-patches `globalThis.fetch` to wrap every request with timing and status tracking. The original `fetch` is restored on unmount.
-- A toggle button sits fixed in the bottom-right corner showing the total request count. Click to open the inspector panel.
-- Each request shows: HTTP method (color-coded badge), URL, status code (green/yellow/red), and duration in ms.
-- Click any request to expand it and see full URL, status text, duration, timestamp, and error details.
-- A "Clear" button resets the log.
-- **Production safe:** The component returns `null` and skips fetch patching entirely when `NODE_ENV !== "development"`. It is also conditionally rendered in `layout.tsx`.
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `NEXT_PUBLIC_APP_URL` | App base URL | `http://localhost:3000` |
+| `NEXT_PUBLIC_APP_NAME` | App display name | `Next Boilerplate` |
+| `NEXT_PUBLIC_API_BASE_URL` | API base URL | `http://localhost:3000/api` |
+| `AUTH_SECRET` | Server-side auth secret | — |
 
-## Health Check API
+## Docker
 
-`GET /api/health` returns:
+```bash
+# Build
+docker build -t next-boilerplate .
 
-```json
-{
-  "status": "ok",
-  "timestamp": "2026-03-16T12:00:00.000Z",
-  "uptime": 123.456
-}
+# Run
+docker run -p 3000:3000 next-boilerplate
 ```
 
-Use this for monitoring, load balancer health checks, or as a quick test target for the API Inspector.
-
-## Customization
-
-- **Global styles** — edit `app/globals.css`
-- **Tailwind config** — edit `tailwind.config.ts` (or the CSS-based config in v4)
-- **Fonts** — swap out fonts in `app/layout.tsx`
-- **Home page** — edit `app/page.tsx`
+Multi-stage build using `node:20-alpine` with `output: "standalone"` for minimal image size.
 
 ## Deployment
 
-The easiest way to deploy is [Vercel](https://vercel.com/new):
+**Vercel** (zero config):
+1. Push to GitHub
+2. Import on [Vercel](https://vercel.com/new)
+3. Deploy
 
-1. Push your code to GitHub
-2. Import the repo on Vercel
-3. Deploy — zero config required
+**Docker**: See above. Works with any container platform (Railway, Fly.io, AWS ECS, etc.)
 
-See the [Next.js deployment docs](https://nextjs.org/docs/app/building-your-application/deploying) for other platforms.
+See the [Next.js deployment docs](https://nextjs.org/docs/app/building-your-application/deploying) for other options.

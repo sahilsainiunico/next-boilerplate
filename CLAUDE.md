@@ -5,9 +5,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Commands
 
 ```bash
-npm run dev      # Start dev server (Next.js with Turbopack)
-npm run build    # Production build
-npm run lint     # Run ESLint
+npm run dev          # Start dev server (Next.js with Turbopack)
+npm run build        # Production build
+npm run lint         # Run ESLint
+npm run format       # Format code with Prettier
+npm run format:check # Check formatting
 ```
 
 No test suite is configured.
@@ -15,46 +17,82 @@ No test suite is configured.
 ## Stack
 
 - **Next.js 16** with App Router, React 19, TypeScript
-- **Tailwind CSS v4** — configured via `@import "tailwindcss"` in `globals.css`, no `tailwind.config` file
-- **shadcn** — component library installed as a package (`shadcn` + `radix-ui`); base styles imported via `@import "shadcn/tailwind.css"`
-- **tw-animate-css** — animation utilities
+- **Tailwind CSS v4** — CSS-first config via `@import "tailwindcss"` in `globals.css`, no `tailwind.config` file
+- **shadcn** — CLI in devDependencies, `radix-ui` in dependencies; base styles via `@import "shadcn/tailwind.css"`
+- **Zustand** — state management with `persist` middleware
+- **next-themes** — theme switching with system preference detection
+- **sonner** — toast notifications
+- **react-hook-form** + **zod** + **@hookform/resolvers** — form handling and schema validation
 - **class-variance-authority (cva)** — variant-based component styling
+- **Prettier** with `prettier-plugin-tailwindcss` (printWidth: 100, double quotes, trailing commas)
 - `cn()` helper in `lib/utils.ts` merges `clsx` + `tailwind-merge`
 
 ## Architecture
 
-### Styling system
-Tailwind v4 uses CSS-first config. All design tokens (colors, radius, fonts) are defined as CSS custom properties in `app/globals.css` under `:root` and `.dark`. These are then aliased into Tailwind's `@theme inline` block so they can be used as Tailwind utilities (e.g. `bg-card`, `text-muted-foreground`). Dark mode uses the `.dark` class strategy via `@custom-variant dark (&:is(.dark *))`.
+### Directory structure
+```
+app/             # Next.js App Router pages and layouts
+components/
+  ui/            # shadcn/ui components (Button, Card, Carousel, ThemeToggle)
+  layouts/       # Page layout components (PageLayout, AuthLayout)
+  providers/     # Context providers (combined Providers wrapper in index.tsx)
+config/          # Routes, API endpoints, environment variables
+hooks/           # Custom React hooks (barrel export via index.ts)
+lib/             # Utilities (cn)
+services/        # API service layer (apiClient, authService)
+store/           # Zustand stores (auth-store)
+types/           # Shared TypeScript types (api, auth, common)
+```
 
-### UI components
-Components live in `components/ui/`. They follow shadcn conventions:
-- Accept `className` and spread remaining props onto the underlying element
-- Use `data-slot` attributes for parent-context styling (e.g. `group/card` targets child slots)
-- `Card` accepts a `size` prop (`"default"` | `"sm"`) that propagates to children via `data-size`
-- `Button` supports `asChild` via `Slot.Root` from `radix-ui` for polymorphic rendering
+### Key conventions
+- **Path alias**: `@/` maps to project root. Always use `@/` for cross-directory imports; `./` only for same-directory barrel re-exports.
+- **No hardcoded endpoints**: All API paths live in `config/endpoints.ts` as `ENDPOINTS` constants. Dynamic segments use mustache syntax: `"/users/{{id}}"` resolved via `interpolate(ENDPOINTS.USERS.DETAIL, { id })`.
+- **No hardcoded routes**: Page paths live in `config/routes.ts` as `ROUTES` constants.
+- **Types go in `types/`**: Never inline shared types. Import from `@/types`.
+
+### Styling system
+Tailwind v4 CSS-first config. Design tokens (OKLch colors, radius, fonts) defined as CSS custom properties in `app/globals.css` under `:root` and `.dark`, aliased into `@theme inline` for Tailwind utility usage (e.g. `bg-card`, `text-muted-foreground`). Dark mode via `next-themes` with `attribute="class"`, `defaultTheme="system"`, and `suppressHydrationWarning` on `<html>`.
+
+### Providers
+Root layout wraps children in `<Providers>` (defined in `components/providers/index.tsx`), which nests:
+1. **ThemeProvider** — next-themes
+2. **AuthProvider** — validates session on mount via `authService.getProfile()`
+3. **ToastProvider** — sonner `<Toaster>`
+
+### API client (`services/api-client.ts`)
+Typed `fetch` wrapper with all calls going through `apiClient.get/post/put/patch/delete<T>()`. Features:
+- Normalizes all responses to `ApiResponse<T>` (`data`, `error`, `message`, `status`, `ok`)
+- Auto-attaches `Authorization: Bearer` from Zustand auth store (skip with `skipAuth: true`)
+- On 401: attempts token refresh → retries original request → logs out if refresh fails
+- Retry with exponential backoff (default: 2 retries, 1s base delay)
+- Auto-triggers `toast.error()` on failures (skip with `skipErrorToast: true`)
+- Per-request timeout via AbortController (default: 30s)
+
+### Auth system
+- **Store**: `store/auth-store.ts` — Zustand with `persist` middleware. Persists `user`, `tokens`, `isAuthenticated` to localStorage.
+- **Service**: `services/auth-service.ts` — login, register, logout, getProfile (all use `ENDPOINTS` constants).
+- **Guard**: `components/layouts/auth-layout.tsx` — redirects to `ROUTES.AUTH.LOGIN` if unauthenticated.
 
 ### Error handling
-Complete error boundary setup in `app/`:
-- `error.tsx` — route-level error boundary (Client Component). Uses Card + Button from `components/ui/`, logs errors via `useEffect`, shows digest ID for server errors, and provides a `reset()` retry button.
-- `global-error.tsx` — root layout error boundary (Client Component). Renders its own `<html>`/`<body>` tags since the root layout has failed. Uses only inline Tailwind classes (no external component imports).
-- `not-found.tsx` — custom 404 page (Server Component). Uses Button with `asChild` wrapping a Next.js `Link`.
-- `loading.tsx` — global loading skeleton (Server Component). Uses `animate-pulse` on `bg-muted` placeholder divs.
+- `app/error.tsx` — route-level error boundary with reset button
+- `app/global-error.tsx` — root layout error boundary (renders own `<html>`)
+- `app/not-found.tsx` — custom 404
+- `app/loading.tsx` — global loading skeleton
+- Interactive demos at `/demo` for each error type
 
+### Environment variables
+Defined in `.env.example`. Access via typed `env` object from `config/env.ts` (throws on missing required vars):
+- `NEXT_PUBLIC_APP_URL` — app base URL
+- `NEXT_PUBLIC_APP_NAME` — app display name
+- `NEXT_PUBLIC_API_BASE_URL` — API base URL (used by `apiClient`)
+- `AUTH_SECRET` — server-side auth secret
 
-### Hooks
-All hooks live in `hooks/` (alias `@/hooks`). Every hook file has a `"use client"` directive. Import via barrel (`@/hooks`) or individual files.
-- `useMediaQuery(query)` / `useScreenSize()` — uses `useSyncExternalStore` for hydration-safe media query matching. Screen size helper uses breakpoints 640px/1024px.
-- `useDebounce<T>(value, delay?)` — generic debounce with `setTimeout`/`clearTimeout`, default 500ms.
-- `useLocalStorage<T>(key, initialValue)` — `useState`-like API with `localStorage` persistence, cross-tab sync via `storage` event, SSR-safe with try/catch.
-- `useOnClickOutside(ref, handler)` — listens to `mousedown`/`touchstart` on `document`, checks `ref.current.contains()`.
-- `useIsMounted()` / `useIsClient()` — hydration-safe boolean via `useSyncExternalStore` (returns `false` on server, `true` on client).
-- `useCopyToClipboard()` — wraps `navigator.clipboard.writeText()`, tracks last copied text.
+### Docker
+Multi-stage Dockerfile (`node:20-alpine`). Requires `output: "standalone"` in `next.config.ts`.
+```bash
+docker build -t next-boilerplate .
+docker run -p 3000:3000 next-boilerplate
+```
 
-### API Inspector
-Dev-only component at `components/dev/api-inspector.tsx`. Monkey-patches `globalThis.fetch` in a `useEffect` to intercept all requests. Shows a floating toggle button (bottom-right) with request count badge, and an expandable panel listing method, URL, status, and duration. Returns `null` in production. Integrated in `app/layout.tsx` behind a `process.env.NODE_ENV === "development"` guard.
-
-### API routes
-- `app/api/health/route.ts` — `GET` handler returning `{ status, timestamp, uptime }`. Standard health-check endpoint.
-
-### Path aliases
-`@/` maps to the project root (configured in `tsconfig.json`).
+### ESLint
+Flat config (`eslint.config.mjs`) extending `eslint-config-next/core-web-vitals` + `typescript`. Custom rules: `consistent-type-imports` (prefer `type` keyword), `no-console` (allow warn/error only), `no-unused-vars` (ignore `_` prefix).
