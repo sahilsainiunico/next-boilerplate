@@ -37,6 +37,15 @@ const cases = [
     cta: "Learn how to trigger →",
     color: "border-purple-500/40 hover:border-purple-500",
   },
+  {
+    href: "/demo/api-inspector",
+    title: "ApiInspector",
+    badge: "Dev tool",
+    description:
+      "Dev-only floating panel that intercepts every fetch() call and logs method, URL, status, and duration in real time.",
+    cta: "Fire requests →",
+    color: "border-green-500/40 hover:border-green-500",
+  },
 ];
 
 export default function DemoPage() {
@@ -45,11 +54,11 @@ export default function DemoPage() {
       <div className="w-full max-w-2xl space-y-8">
         <div className="space-y-2">
           <h1 className="text-3xl font-bold text-foreground">
-            Error Handling Demo
+            Boilerplate Demos
           </h1>
           <p className="text-muted-foreground">
-            Each card below links to a route that triggers a specific Next.js
-            error-handling file.
+            Each card links to a route that demonstrates a specific feature of
+            this boilerplate.
           </p>
         </div>
 

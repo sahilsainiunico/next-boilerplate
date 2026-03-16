@@ -118,6 +118,7 @@ Navigate to **`/demo`** to trigger each case live:
 | `/demo/not-found` | Server Component calls `notFound()` → `not-found.tsx` renders |
 | `/demo/loading` | Async Server Component with a 3-second delay → `loading.tsx` skeleton shown instantly via Suspense |
 | `/demo/global-error` | Informational — explains why `global-error.tsx` can't be triggered via navigation and how to reproduce it manually |
+| `/demo/api-inspector` | Fires GET, POST, 404, and slow cross-origin requests — watch them appear live in the API Inspector panel |
 
 ## Hooks
 
