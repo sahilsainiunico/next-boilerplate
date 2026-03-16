@@ -42,15 +42,23 @@ bun dev
 
 ```
 app/
-  layout.tsx          # Root layout (fonts, global styles, dev tools)
-  page.tsx            # Home page — start editing here
-  loading.tsx         # Global loading skeleton (Suspense fallback)
-  error.tsx           # Route-level error boundary
-  global-error.tsx    # Root layout error boundary
-  not-found.tsx       # Custom 404 page
+  layout.tsx             # Root layout (fonts, global styles, dev tools)
+  page.tsx               # Home page — start editing here
+  loading.tsx            # Global loading skeleton (Suspense fallback)
+  error.tsx              # Route-level error boundary
+  global-error.tsx       # Root layout error boundary
+  not-found.tsx          # Custom 404 page
   api/
     health/
-      route.ts        # GET /api/health — health-check endpoint
+      route.ts           # GET /api/health — health-check endpoint
+  demo/                  # Interactive error-handling demos → /demo
+    page.tsx             # Demo hub with links to all cases
+    error/page.tsx       # Triggers error.tsx (render-time throw)
+    not-found/page.tsx   # Triggers not-found.tsx (calls notFound())
+    loading/             # Triggers loading.tsx (3-second async page)
+      loading.tsx
+      page.tsx
+    global-error/page.tsx  # Explains global-error.tsx + how to reproduce
 components/
   ui/                 # shadcn/ui components (button, card, carousel)
   dev/
@@ -99,6 +107,17 @@ The boilerplate includes a complete error handling setup out of the box:
 | `app/global-error.tsx` | Catches errors that occur in the root layout itself. Since the root layout has failed, this component renders its own `<html>` and `<body>` tags with minimal inline styling (no external component dependencies). |
 | `app/not-found.tsx` | Custom 404 page shown when navigating to a non-existent route or when `notFound()` is called. Displays a centered "404 - Page Not Found" message with a button linking back to the home page. |
 | `app/loading.tsx` | Automatic loading UI displayed while a route segment is loading. Uses Tailwind's `animate-pulse` on placeholder shapes to create a skeleton screen effect. |
+
+### Interactive demos
+
+Navigate to **`/demo`** to trigger each case live:
+
+| Route | What it demonstrates |
+|---|---|
+| `/demo/error` | Clicks a button → sets state → component throws during render → `error.tsx` catches it and shows a retry button |
+| `/demo/not-found` | Server Component calls `notFound()` → `not-found.tsx` renders |
+| `/demo/loading` | Async Server Component with a 3-second delay → `loading.tsx` skeleton shown instantly via Suspense |
+| `/demo/global-error` | Informational — explains why `global-error.tsx` can't be triggered via navigation and how to reproduce it manually |
 
 ## Hooks
 

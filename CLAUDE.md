@@ -40,6 +40,7 @@ Complete error boundary setup in `app/`:
 - `not-found.tsx` — custom 404 page (Server Component). Uses Button with `asChild` wrapping a Next.js `Link`.
 - `loading.tsx` — global loading skeleton (Server Component). Uses `animate-pulse` on `bg-muted` placeholder divs.
 
+
 ### Hooks
 All hooks live in `hooks/` (alias `@/hooks`). Every hook file has a `"use client"` directive. Import via barrel (`@/hooks`) or individual files.
 - `useMediaQuery(query)` / `useScreenSize()` — uses `useSyncExternalStore` for hydration-safe media query matching. Screen size helper uses breakpoints 640px/1024px.
